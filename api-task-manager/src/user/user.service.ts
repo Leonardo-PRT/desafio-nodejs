@@ -1,8 +1,11 @@
-import {BadRequestException, Body, Injectable, InternalServerErrorException, Post} from '@nestjs/common';
-import {UserDTO} from "../dto/user.dto";
-import {ApiOperation} from "@nestjs/swagger";
+import {BadRequestException, Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
+import {CreateUserDto} from "./create-user.dto";
 import {Prisma} from "@prisma/client";
 import {PrismaService} from "../prisma.service";
+import {SimpleUserDto} from "./simple-user.dto";
+import {plainToClass} from "class-transformer";
+// @ts-ignore
+import * as bcrypt from "bcrypt";
 
 
 @Injectable()
@@ -10,15 +13,17 @@ export class UserService {
 
     constructor(private prisma: PrismaService) {}
 
-    async create(userDTO: UserDTO) {
+    async create(userDTO: CreateUserDto) {
         try {
             const userData = { ...userDTO};
-            const user = await this.prisma.user.create({ data: userData });
 
-            return user;
+            const decryptPassword = await bcrypt.hash(userData.password, 8);
+
+            return await this.prisma.user.create({data: {...userData, password: decryptPassword}});
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
-                const field = error.meta.target[0].split('.')[1];
+                const uniqueField = error.meta.target[0];
+                const field = uniqueField.split('.').pop(); // Pega o campo do erro
                 const value = userDTO[field];
                 throw new BadRequestException(
                     `User with ${field} ${value} already exists`,
@@ -28,5 +33,60 @@ export class UserService {
                 `Failed to create user: ${error.message}`,
             );
         }
+    }
+
+    async update(userId: number, userDTO: CreateUserDto) {
+        try {
+            return await this.prisma.user.update({
+                where: {id: userId},
+                data: {
+                    ...userDTO,
+                },
+            });
+        } catch (error) {
+            throw new BadRequestException(
+                `Failed to update user info: ${error.message}`,
+            );
+        }
+    }
+
+    async detail(id: number) {
+        const user = await this.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                password: false
+            },
+        });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${id} not found`);
+        }
+        return user;
+    }
+
+    async delete(id: number) {
+        try {
+            await this.prisma.user.delete({
+                where: { id }
+            });
+            return { message: `User with ID ${id} was successfully deleted` };
+        } catch (error) {
+            throw new NotFoundException(
+                `Could not find user with ID ${id} to delete`,
+            );
+        }
+    }
+
+    async findAll() {
+        return this.prisma.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                password: false
+            },
+        });
     }
 }
