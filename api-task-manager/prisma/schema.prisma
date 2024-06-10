@@ -51,21 +51,31 @@ model Task {
   createdAt   DateTime  @default(now())
   status      TaskStaus
   projectId   Int
-  tags        Tag[]
   project     Project   @relation(fields: [projectId], references: [id])
   User        User?     @relation(fields: [userId], references: [id])
   userId      Int?
+  TaskTag     TaskTag[]
 
   @@map("tb_task")
 }
 
 model Tag {
-  id     Int    @id @default(autoincrement())
-  title  String
-  taskId Int
-  task   Task   @relation(fields: [taskId], references: [id])
+  id      Int       @id @default(autoincrement())
+  title   String
+  TaskTag TaskTag[]
 
   @@map("tb_tag")
+}
+
+model TaskTag {
+  taskId Int
+  tagId  Int
+
+  task Task @relation(fields: [taskId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([taskId, tagId])
+  @@map("tb_task_tag")
 }
 
 enum TaskStaus {
