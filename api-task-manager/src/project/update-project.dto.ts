@@ -1,19 +1,15 @@
 import {ApiProperty} from "@nestjs/swagger";
-import {IsNotEmpty} from "class-validator";
+import {IsOptional, IsString} from "class-validator";
 
 export class UpdateProjectDto {
 
     @ApiProperty()
-    @IsNotEmpty({message: 'UserId is required'})
-    ownerId: number
+    @IsOptional()
+    @IsString()
+    name: string;
 
     @ApiProperty()
-    membersId: number[]
-
-    @ApiProperty()
-    name: string
-
-    @ApiProperty()
-    description: string
-
+    @IsOptional()
+    @IsString()
+    description: string;
 }

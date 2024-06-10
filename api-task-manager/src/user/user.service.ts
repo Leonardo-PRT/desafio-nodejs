@@ -2,9 +2,7 @@ import {BadRequestException, Injectable, InternalServerErrorException, NotFoundE
 import {CreateUserDto} from "./create-user.dto";
 import {Prisma} from "@prisma/client";
 import {PrismaService} from "../prisma.service";
-import {SimpleUserDto} from "./simple-user.dto";
-import {plainToClass} from "class-transformer";
-// @ts-ignore
+
 import * as bcrypt from "bcrypt";
 
 
@@ -23,7 +21,7 @@ export class UserService {
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
                 const uniqueField = error.meta.target[0];
-                const field = uniqueField.split('.').pop(); // Pega o campo do erro
+                const field = uniqueField.split('.').pop();
                 const value = userDTO[field];
                 throw new BadRequestException(
                     `User with ${field} ${value} already exists`,
@@ -79,14 +77,31 @@ export class UserService {
         }
     }
 
-    async findAll() {
-        return this.prisma.user.findMany({
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                password: false
-            },
-        });
+    async findAll(page: number, size: number) {
+        const skip = page * size;
+
+        try {
+            const [users, total] = await Promise.all([
+                this.prisma.user.findMany({
+                    skip: skip,
+                    take: Number(size),
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                }),
+                this.prisma.user.count(),
+            ]);
+
+            return {
+                data: users,
+                total,
+                page,
+                size,
+            };
+        } catch (error) {
+            throw new InternalServerErrorException(`Failed to retrieve users: ${error.message}`);
+        }
     }
 }
