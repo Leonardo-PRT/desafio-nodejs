@@ -62,7 +62,7 @@ describe('UserController', () => {
         it('should update a user', async () => {
             const updateUserDto: UpdateUserDto = { name: 'Updated Test', email: 'updated@test.com', password: 'updated123' };
             const id = 1;
-            const updatedUser = { id, ...updateUserDto };  // Include id in the returned object
+            const updatedUser = { id, ...updateUserDto };
             userService.update.mockResolvedValue(updatedUser);
 
             const result = await userController.updateUserInfo(id, updateUserDto);

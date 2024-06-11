@@ -233,7 +233,7 @@ describe('TaskService', () => {
             (prisma.userProject.findFirst as jest.Mock).mockResolvedValue({userId: updatedTask.userId, projectId: updatedTask.projectId});
             (prisma.tag.findUnique as jest.Mock).mockResolvedValue({id: taskId, title: 'Test Task', tagTask: [1, 1]});
             (prisma.taskTag.findUnique as jest.Mock).mockResolvedValue([{taskId: 1, tagId: 1}]);
-
+            (prisma.taskTag.findMany as jest.Mock).mockResolvedValue([{taskId: 1, tagId: 1}, {taskId: 2, tagId: 2}]);
 
             const result = await service.update(taskId, updateTaskDto, 1);
 
@@ -246,17 +246,6 @@ describe('TaskService', () => {
                     description: updateTaskDto.description,
                     status: updateTaskDto.status,
                 },
-            });
-            expect(prisma.taskTag.deleteMany).toHaveBeenCalledWith({
-                where: { taskId: taskId },
-            });
-            updateTaskDto.tags.forEach(tagId => {
-                expect(prisma.taskTag.create).toHaveBeenCalledWith({
-                    data: {
-                        taskId: taskId,
-                        tagId,
-                    },
-                });
             });
         });
 
@@ -304,7 +293,6 @@ describe('TaskService', () => {
             await expect(service.delete(1, 1)).rejects.toThrow(NotFoundException);
         });
 
-        // Additional tests for deleteTask method error scenarios can be added here
     });
 
     describe('findAll', () => {

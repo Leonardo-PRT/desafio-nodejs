@@ -1,7 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-    DiskHealthIndicator,
     HealthCheck,
     HealthCheckService,
     HttpHealthIndicator,
@@ -15,7 +14,6 @@ export class HealthController {
     constructor(
         private health: HealthCheckService,
         private http: HttpHealthIndicator,
-        private readonly disk: DiskHealthIndicator,
         private memory: MemoryHealthIndicator,
     ) {
     }

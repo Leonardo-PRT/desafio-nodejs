@@ -16,7 +16,7 @@ export class CreateTaskDto {
     @ApiProperty()
     @IsString()
     @IsNotEmpty()
-    status: TaskStatus;  // Should be 'Pending', 'InProgress', or 'Done'
+    status: TaskStatus;
 
     @ApiProperty()
     @IsInt()

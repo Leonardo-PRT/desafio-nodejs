@@ -62,7 +62,7 @@ describe('ProjectController', () => {
 
             jest.spyOn(service, 'addMember').mockResolvedValue(mock);
 
-            const result = await controller.addMember(addMemberDto, 1); // Assuming ownerId is 1
+            const result = await controller.addMember(addMemberDto, 1);
 
             expect(service.addMember).toHaveBeenCalledWith(addMemberDto, 1);
         });
