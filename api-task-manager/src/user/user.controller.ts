@@ -1,4 +1,12 @@
-import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+    ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiNotFoundResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiParam,
+    ApiQuery,
+    ApiResponse,
+    ApiTags
+} from "@nestjs/swagger";
 import {
     BadRequestException,
     Body,
@@ -6,7 +14,6 @@ import {
     Delete,
     Get,
     Param,
-    Patch,
     Post,
     Put,
     Query,
@@ -16,6 +23,8 @@ import {
 import { CreateUserDto } from "./create-user.dto";
 import { UpdateUserDto } from "./update-user.dto";
 import { UserService } from "./user.service";
+import {User} from "@prisma/client";
+import {UserDetailDto} from "./user-detail.dto";
 
 @ApiTags('User')
 @Controller('user')
@@ -24,40 +33,42 @@ export class UserController {
 
     @Post()
     @ApiOperation({ summary: 'Create a new user' })
-    @ApiResponse({ status: 201, description: 'User created successfully.' })
-    @ApiResponse({ status: 400, description: 'Bad Request.' })
+    @ApiBody({ description: 'Create user body', type: CreateUserDto})
+    @ApiCreatedResponse({ description: 'User created successfully.' })
+    @ApiBadRequestResponse({ description: 'Bad Request.' })
     @UsePipes(new ValidationPipe({ whitelist: true }))
-    async create(@Body() userDTO: CreateUserDto) {
+    async create(@Body() userDTO: CreateUserDto):Promise<CreateUserDto> {
         return await this.userService.create(userDTO);
     }
 
     @Put(':id')
     @ApiOperation({ summary: 'Update user info' })
     @ApiParam({ name: 'id', description: 'The ID of the user to retrieve' })
-    @ApiResponse({ status: 200, description: 'User info updated successfully.' })
-    @ApiResponse({ status: 400, description: 'Bad Request.' })
-    @ApiResponse({ status: 404, description: 'User not found.' })
+    @ApiBody({ description: 'Update user body',type: UpdateUserDto })
+    @ApiOkResponse({ description: 'User updated successfully.' })
+    @ApiBadRequestResponse({ description: 'Bad Request.' })
+    @ApiNotFoundResponse({description: 'User not found.' })
     async updateUserInfo(
         @Param('id') id: number,
         @Body() userDTO: UpdateUserDto,
-    ) {
+    ): Promise<UpdateUserDto> {
         return await this.userService.update(id, userDTO);
     }
 
     @Get(':id')
     @ApiOperation({ summary: 'Get a single user by ID' })
     @ApiParam({ name: 'id', description: 'The ID of the user to retrieve' })
-    @ApiResponse({ status: 200, description: 'User retrieved successfully.' })
-    @ApiResponse({ status: 404, description: 'User not found.' })
-    async detail(@Param('id') id: number) {
+    @ApiOkResponse({ description: 'User retrieved successfully.' })
+    @ApiNotFoundResponse({ description: 'User not found.' })
+    async detail(@Param('id') id: number):Promise<UserDetailDto> {
         return await this.userService.detail(id);
     }
 
     @Delete(':id')
     @ApiOperation({ summary: 'Delete a user by ID' })
     @ApiParam({ name: 'id', description: 'The ID of the user to delete' })
-    @ApiResponse({ status: 200, description: 'User deleted successfully.' })
-    @ApiResponse({ status: 404, description: 'User not found.' })
+    @ApiOkResponse({ description: 'User deleted successfully.' })
+    @ApiNotFoundResponse({ description: 'User not found.' })
     async remove(@Param('id') id: number) {
         return await this.userService.delete(id);
     }
@@ -66,8 +77,8 @@ export class UserController {
     @ApiOperation({ summary: 'Get all users' })
     @ApiQuery({ name: 'page', required: false, description: 'Page number for pagination', type: Number })
     @ApiQuery({ name: 'limit', required: false, description: 'Number of users per page', type: Number })
-    @ApiResponse({ status: 200, description: 'Users retrieved successfully.' })
-    @ApiResponse({ status: 400, description: 'Bad Request.' })
+    @ApiOkResponse({ description: 'Users retrieved successfully.' })
+    @ApiBadRequestResponse({ description: 'Bad Request.' })
     async findAll(@Query('page') page?: number, @Query('limit') size?: number) {
 
         if (isNaN(page) || isNaN(size) || page < 0 || size <= 0) {

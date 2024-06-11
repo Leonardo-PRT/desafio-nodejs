@@ -2,7 +2,7 @@ import {
     BadRequestException,
     ForbiddenException,
     Injectable,
-    InternalServerErrorException,
+    InternalServerErrorException, Logger,
     NotFoundException,
 } from "@nestjs/common";
 import {CreateProjectDto} from "./create-project.dto";
@@ -12,14 +12,18 @@ import {UpdateProjectDto} from "./update-project.dto";
 
 @Injectable()
 export class ProjectService {
+    private readonly logger = new Logger(ProjectService.name);
+
     constructor(private prisma: PrismaService) {}
 
 
     async create(projectDTO: CreateProjectDto) {
-        const userFound = await this.prisma.user.findUnique({where: {id: projectDTO.ownerId}});
+        const userFound = await this.prisma.user.findUnique({where: {id: Number(projectDTO.ownerId)}});
+        console.log(projectDTO.ownerId)
 
         if (!userFound){
-            throw new NotFoundException("User not found");
+            this.logger.error(`Could not find a user with id ${projectDTO.ownerId}`);
+            throw new NotFoundException(`Could not find a user with id ${projectDTO.ownerId}`);
         }
 
         try {
@@ -32,10 +36,8 @@ export class ProjectService {
             return await this.prisma.project.create({data: data});
 
         } catch (error) {
-
-            throw new InternalServerErrorException(
-                `Failed to create user: ${error.message}`,
-            );
+            this.logger.error(`Failed to create user: ${error.message}`);
+            throw new InternalServerErrorException(`Failed to create user: ${error.message}`);
         }
     }
 
@@ -45,18 +47,19 @@ export class ProjectService {
         });
 
         if (!project) {
+            this.logger.error("Project not found");
             throw new NotFoundException("Project not found");
         }
 
-        console.log(project.ownerId != ownerId)
-
         if (project.ownerId != ownerId) {
+            this.logger.error("Only the project owner can add members");
             throw new ForbiddenException("Only the project owner can add members");
         }
 
         const user = await this.prisma.user.findUnique({ where: { id: addMemberDTO.userId } });
 
         if (!user) {
+            this.logger.error("User not found");
             throw new NotFoundException("User not found");
         }
 
@@ -68,6 +71,7 @@ export class ProjectService {
                 },
             });
         } catch (error) {
+            this.logger.error(`Failed to add member: ${error.message}`);
             throw new InternalServerErrorException(`Failed to add member: ${error.message}`);
         }
     }
@@ -78,10 +82,12 @@ export class ProjectService {
         });
 
         if (!project) {
+            this.logger.error("Project not found");
             throw new NotFoundException("Project not found");
         }
 
         if (project.ownerId != ownerId) {
+            this.logger.error("Only the project owner can remove members");
             throw new ForbiddenException("Only the project owner can remove members");
         }
 
@@ -90,6 +96,7 @@ export class ProjectService {
         });
 
         if (!userProject) {
+            this.logger.error("Member not found in project");
             throw new NotFoundException("Member not found in project");
         }
 
@@ -99,6 +106,7 @@ export class ProjectService {
             });
             return { message: 'Member removed successfully' };
         } catch (error) {
+            this.logger.error(`Failed to remove member: ${error.message}`);
             throw new InternalServerErrorException(`Failed to remove member: ${error.message}`);
         }
     }
@@ -109,6 +117,7 @@ export class ProjectService {
         });
 
         if (!project) {
+            this.logger.error("Project not found");
             throw new NotFoundException("Project not found");
         }
 
@@ -123,6 +132,7 @@ export class ProjectService {
                 },
             });
         } catch (error) {
+            this.logger.error(`Failed to update project: ${error.message}`);
             throw new InternalServerErrorException(`Failed to update project: ${error.message}`);
         }
     }
@@ -146,7 +156,31 @@ export class ProjectService {
                 size,
             };
         } catch (error) {
+            this.logger.error(`Failed to retrieve projects: ${error.message}`);
             throw new InternalServerErrorException(`Failed to retrieve projects: ${error.message}`);
         }
+    }
+
+    async detail(id: number) {
+        const project = await this.prisma.project.findUnique({ where: { id: Number(id) }});
+
+        if (!project) {
+            this.logger.error("Project not found");
+            throw new NotFoundException("Project not found");
+
+        }
+
+        return project;
+    }
+
+    async delete(id: number) {
+        const project = await this.prisma.project.findUnique({ where: { id: Number(id) }});
+
+        if (!project) {
+            this.logger.error(`Project with id ${id} not found`);
+            throw new NotFoundException(`Project with id ${id} not found`);
+        }
+
+        await this.prisma.project.delete({ where: { id: Number(id) }});
     }
 }

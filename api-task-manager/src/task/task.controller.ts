@@ -27,8 +27,8 @@ export class TaskController {
     @ApiResponse({ status: 201, description: 'Task created successfully' })
     @ApiResponse({ status: 400, description: 'Bad Request' })
     @UsePipes(new ValidationPipe({ whitelist: true }))
-    async createTask(@Body() createTaskDto: CreateTaskDto, @Query('userId') userId: number) {
-        return await this.taskService.createTask(createTaskDto, userId);
+    async create(@Body() createTaskDto: CreateTaskDto, @Query('userId') userId: number) {
+        return await this.taskService.create(createTaskDto, userId);
     }
 
     @Get('/task/:taskId')
@@ -36,8 +36,8 @@ export class TaskController {
     @ApiParam({ name: 'taskId', required: true, description: 'ID of the task to retrieve' })
     @ApiResponse({ status: 200, description: 'Task retrieved successfully' })
     @ApiResponse({ status: 404, description: 'Task not found' })
-    async getTaskById(@Param('taskId') taskId: number) {
-        return await this.taskService.getTaskById(taskId);
+    async detail(@Param('taskId') taskId: number) {
+        return await this.taskService.detail(taskId);
     }
 
     @Patch('/task/:taskId')
@@ -48,12 +48,12 @@ export class TaskController {
     @ApiResponse({ status: 400, description: 'Bad Request' })
     @ApiResponse({ status: 404, description: 'Task not found' })
     @UsePipes(new ValidationPipe({ whitelist: true }))
-    async updateTask(
+    async update(
         @Param('taskId') taskId: number,
         @Body() updateTaskDto: UpdateTaskDto,
         @Query('userId') userId: number,
     ) {
-        return await this.taskService.updateTask(taskId, updateTaskDto, userId);
+        return await this.taskService.update(taskId, updateTaskDto, userId);
     }
 
     @Delete('/task/:taskId')
@@ -63,8 +63,8 @@ export class TaskController {
     @ApiResponse({ status: 200, description: 'Task deleted successfully' })
     @ApiResponse({ status: 400, description: 'Bad Request' })
     @ApiResponse({ status: 404, description: 'Task not found' })
-    async deleteTask(@Param('taskId') taskId: number, @Query('userId') userId: number) {
-        return await this.taskService.deleteTask(taskId, userId);
+    async delete(@Param('taskId') taskId: number, @Query('userId') userId: number) {
+        return await this.taskService.delete(taskId, userId);
     }
 
     @Get()

@@ -1,10 +1,18 @@
-import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+    ApiInternalServerErrorResponse,
+    ApiNotFoundResponse,
+    ApiOperation,
+    ApiParam,
+    ApiQuery,
+    ApiResponse,
+    ApiTags
+} from "@nestjs/swagger";
 import {
     BadRequestException,
     Body,
     Controller,
     Delete,
-    Get,
+    Get, HttpStatus,
     Param,
     Patch,
     Post,
@@ -84,5 +92,23 @@ export class ProjectController {
         }
 
         return await this.projectService.findAll(page, size);
+    }
+
+    @Get(':id')
+    @ApiParam({ name: 'id', required: true, description: 'Project ID' })
+    @ApiResponse({ status: HttpStatus.OK, description: 'Successfully fetched project.' })
+    @ApiNotFoundResponse({ description: 'Project not found.' })
+    @ApiInternalServerErrorResponse({ description: 'Server error.' })
+    async detail(@Param('id') id: number) {
+        return await this.projectService.detail(+id);
+    }
+
+    @Delete(':id')
+    @ApiParam({ name: 'id', required: true, description: 'Project ID' })
+    @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Successfully deleted project.' })
+    @ApiNotFoundResponse({ description: 'Project not found.' })
+    @ApiInternalServerErrorResponse({ description: 'Server error.' })
+    async delete(@Param('id') id: number) {
+        return await this.projectService.delete(+id);
     }
 }

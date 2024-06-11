@@ -24,8 +24,8 @@ export class TagController {
     @ApiResponse({ status: 201, description: 'Tag created successfully.' })
     @ApiResponse({ status: 400, description: 'Bad Request.' })
     @UsePipes(new ValidationPipe({ whitelist: true }))
-    async createTag(@Body() createTagDto: CreateTagDto) {
-        return await this.tagService.createTag(createTagDto);
+    async create(@Body() createTagDto: CreateTagDto) {
+        return await this.tagService.create(createTagDto);
     }
 
     @Get('/tag/:tagId')
@@ -33,8 +33,8 @@ export class TagController {
     @ApiParam({ name: 'tagId', description: 'The ID of the tag to retrieve' })
     @ApiResponse({ status: 200, description: 'Tag retrieved successfully.' })
     @ApiResponse({ status: 404, description: 'Tag not found.' })
-    async getTagById(@Param('tagId') tagId: number) {
-        return await this.tagService.getTagById(tagId);
+    async detail(@Param('tagId') tagId: number) {
+        return await this.tagService.detail(tagId);
     }
 
     @Patch('/tag/:tagId')
@@ -44,8 +44,8 @@ export class TagController {
     @ApiResponse({ status: 400, description: 'Bad Request.' })
     @ApiResponse({ status: 404, description: 'Tag not found.' })
     @UsePipes(new ValidationPipe({ whitelist: true }))
-    async updateTag(@Param('tagId') tagId: number, @Body() updateTagDto: CreateTagDto) {
-        return await this.tagService.updateTag(tagId, updateTagDto);
+    async update(@Param('tagId') tagId: number, @Body() updateTagDto: CreateTagDto) {
+        return await this.tagService.update(tagId, updateTagDto);
     }
 
     @Delete('/tag/:tagId')
@@ -53,8 +53,8 @@ export class TagController {
     @ApiParam({ name: 'tagId', description: 'The ID of the tag to delete' })
     @ApiResponse({ status: 200, description: 'Tag deleted successfully.' })
     @ApiResponse({ status: 404, description: 'Tag not found.' })
-    async deleteTag(@Param('tagId') tagId: number) {
-        return await this.tagService.deleteTag(tagId);
+    async delete(@Param('tagId') tagId: number) {
+        return await this.tagService.delete(tagId);
     }
 
     @Get()
